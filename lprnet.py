@@ -1,12 +1,7 @@
-from torch.autograd import Variable
-import torch.nn.functional as F
-# from torch.utils.data import *
-from torch.utils.data import BatchSampler
-from torch import optim
-import torch.nn as nn
-import numpy as np
-import torch
 import cv2
+import torch
+import numpy as np
+import torch.nn as nn
 
 CHARS = [
     "0",
@@ -198,4 +193,5 @@ def Greedy_Decode_Eval(Net, images, cuda):
         for j in label:
             lb += CHARS[j]
         labels.append(lb)
+
     return labels

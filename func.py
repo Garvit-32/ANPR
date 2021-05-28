@@ -1,14 +1,7 @@
-from albumentations.augmentations.functional import crop
-import numpy as np
-import os
 import sys
 import cv2
-from config import get_cfg_defaults
-from models.model import create_model
-from utils.visualize import visualize
-from tqdm import tqdm
-from dataset.augmentations import *
-import matplotlib.pyplot as plt
+import numpy as np
+
 
 classes = {
     10: [(102, 102, 0), "auto front"],
@@ -62,15 +55,12 @@ def plate_cropper(image, imagergb):
             [[0, height - 1], [0, 0], [width - 1, 0], [width - 1, height - 1]],
             dtype="float32",
         )
-        # print(dst_pts)
         M = cv2.getPerspectiveTransform(src_pts, dst_pts)
-        warped = cv2.warpPerspective(imagergb, M, (width, height))
 
+        warped = cv2.warpPerspective(imagergb, M, (width, height))
         if width < height:
             warped = cv2.rotate(warped, cv2.ROTATE_90_COUNTERCLOCKWISE)
-
         cropped_images.append(warped)
-
         # cv2.imwrite('/home/sanchit/Desktop/warped'+'/'+str(i)+str(width)+'.jpg',warped)
         # i=i+1
 
@@ -98,6 +88,8 @@ def write_string(prediction, image, coordinates, centroid, labels):
 
     for i in range(len(coordinates)):
         temp = centroid[i]
+        box = cv2.boxPoints(temp)
+        box = np.int0(box)
         pred_class = prediction[int(temp[0][1])][int(temp[0][0])]
         pred_class = pred_class[0]
 
@@ -147,17 +139,14 @@ def details(prediction, labels, coordinates, centroid):
     for i in range(len(coordinates)):
         temp = centroid[i]
         pred_class = prediction[int(temp[0][1])][int(temp[0][0])][0]
-        print(classes[pred_class][1])
+        # print(pred_class)
+        box = cv2.boxPoints(temp)
+        box = np.int0(box)
         data_dictionary[i] = [
-            coordinates[i],
+            coordinates[i].tolist(),
             classes[pred_class][1].split()[0],
             classes[pred_class][1].split()[1],
             labels[i],
         ]
 
     return data_dictionary
-
-
-def preprocess_image(image, cfg):
-    image = normalize(image, cfg)
-    return torch.unsqueeze(image, dim=0)

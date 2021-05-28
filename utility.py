@@ -1,39 +1,46 @@
-import numpy as np
-import torch
-import time
-import os
-import sys
 import cv2
-from lprnet import *
-from dataset.augmentations import *
+import torch
+import numpy as np
 from func import *
-import matplotlib.pyplot as plt
+from lprnet import *
+from torchvision import transforms
+
+transformation = transforms.Compose(
+    [transforms.ToPILImage(), transforms.ToTensor()])
 
 
-def runner(frame, model, cfg):
+def normalize(image):
+    return transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(
+        transformation(image)
+    )
 
-    current_path = os.path.dirname(os.path.abspath(__file__))
 
-    lpr_weights = f'{current_path}/weights/iter2.pth'
-    debug_program = True
-    cuda = False
+def preprocess_image(image):
+
+    image = normalize(image)
+    return torch.unsqueeze(image, dim=0)
+
+
+def runner(frame, model, lpr_weights):
 
     frame = cv2.resize(frame, (1920, 1080))
     frame1 = frame
-    image = preprocess_image(frame, cfg)
+    image = preprocess_image(frame)
+    debug_program = True
+    cuda = False
     # if torch.cuda.is_available():
     #     image = image.cuda()
 
     with torch.no_grad():
-        prediction = model(image, (cfg.dataset.height, cfg.dataset.width))
-
+        prediction = model(image, (1080, 1920))
         prediction = (
-            torch.argmax(prediction["output"][0], dim=1)
+            torch.argmax(prediction["output"], dim=1)
             .cpu()
             .squeeze(dim=0)
             .numpy()
             .astype(np.uint8)
         ).reshape(frame.shape[0], frame.shape[1], 1)
+
         cropped_images, coordinates, centroid = plate_cropper(
             prediction, frame)
         final_image = frame1
