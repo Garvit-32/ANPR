@@ -7,6 +7,8 @@ Detection and recognition of indian license number plate implemented in Pytorch.
 Trained on custom HRNet ([Link](https://arxiv.org/abs/1904.04514)) model for detection and segmentation of the plate and used LPRNet ([Link](https://arxiv.org/abs/1806.10447)) for recognition of license plate.
 
 
+Click and try here ([Link](https://indianplatedetection.herokuapp.com/)) 
+
 ## Steps to run 
  1. Clone this repository
  ```
